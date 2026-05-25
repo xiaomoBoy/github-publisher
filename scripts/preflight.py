@@ -67,7 +67,8 @@ def check_python() -> dict[str, Any]:
     ok = v.major == 3 and v.minor >= 8
     return {
         "name": "python3",
-        "status": "ok" if ok else "warning",
+        "required": True,
+        "status": "ok" if ok else "missing",
         "details": f"Python {v.major}.{v.minor}.{v.micro}",
         "fix": None if ok else install_for(
             macos="brew install python@3.11",
@@ -80,6 +81,7 @@ def check_git() -> dict[str, Any]:
     if shutil.which("git") is None:
         return {
             "name": "git",
+            "required": True,
             "status": "missing",
             "details": "git is not installed or not on PATH.",
             "fix": install_for(
@@ -94,6 +96,7 @@ def check_git() -> dict[str, Any]:
         )
         return {
             "name": "git",
+            "required": True,
             "status": "ok",
             "details": (r.stdout or r.stderr).strip(),
             "fix": None,
@@ -101,6 +104,7 @@ def check_git() -> dict[str, Any]:
     except (FileNotFoundError, subprocess.TimeoutExpired) as e:
         return {
             "name": "git",
+            "required": True,
             "status": "missing",
             "details": f"git on PATH but cannot execute: {e}",
             "fix": install_for(
@@ -126,9 +130,10 @@ def get_git_config(key: str) -> str | None:
 def check_git_config_name() -> dict[str, Any]:
     name = get_git_config("user.name")
     if name:
-        return {"name": "git.user.name", "status": "ok", "details": name, "fix": None}
+        return {"name": "git.user.name", "required": True, "status": "ok", "details": name, "fix": None}
     return {
         "name": "git.user.name",
+        "required": True,
         "status": "needs_setup",
         "details": "git config user.name is not set globally; commits will be rejected.",
         "fix": {
@@ -144,9 +149,10 @@ def check_git_config_name() -> dict[str, Any]:
 def check_git_config_email() -> dict[str, Any]:
     email = get_git_config("user.email")
     if email:
-        return {"name": "git.user.email", "status": "ok", "details": email, "fix": None}
+        return {"name": "git.user.email", "required": True, "status": "ok", "details": email, "fix": None}
     return {
         "name": "git.user.email",
+        "required": True,
         "status": "needs_setup",
         "details": "git config user.email is not set globally; commits will be rejected.",
         "fix": {
@@ -164,6 +170,7 @@ def check_gh_cli() -> dict[str, Any]:
     if shutil.which("gh") is None:
         return {
             "name": "gh",
+            "required": False,
             "status": "warning",
             "details": "gh CLI is not installed. Not required — will fall back to API (Path B) or manual (Path C).",
             "fix": install_for(
@@ -178,6 +185,7 @@ def check_gh_cli() -> dict[str, Any]:
         )
         return {
             "name": "gh",
+            "required": False,
             "status": "ok",
             "details": (r.stdout or "").splitlines()[0].strip(),
             "fix": None,
@@ -185,6 +193,7 @@ def check_gh_cli() -> dict[str, Any]:
     except (FileNotFoundError, subprocess.TimeoutExpired):
         return {
             "name": "gh",
+            "required": False,
             "status": "warning",
             "details": "gh on PATH but cannot execute",
             "fix": install_for(
@@ -198,6 +207,7 @@ def check_gh_auth() -> dict[str, Any]:
     if shutil.which("gh") is None:
         return {
             "name": "gh.auth",
+            "required": False,
             "status": "warning",
             "details": "skipped (gh not installed)",
             "fix": None,
@@ -210,6 +220,7 @@ def check_gh_auth() -> dict[str, Any]:
     except (FileNotFoundError, subprocess.TimeoutExpired):
         return {
             "name": "gh.auth",
+            "required": False,
             "status": "warning",
             "details": "gh auth status failed to run",
             "fix": None,
@@ -219,14 +230,16 @@ def check_gh_auth() -> dict[str, Any]:
     if r.returncode == 0 and ("Logged in to github.com" in output or "Active account" in output):
         return {
             "name": "gh.auth",
+            "required": False,
             "status": "ok",
             "details": output.splitlines()[0] if output else "logged in",
             "fix": None,
         }
     return {
         "name": "gh.auth",
-        "status": "needs_setup",
-        "details": "gh installed but not logged in.",
+        "required": False,
+        "status": "warning",
+        "details": "gh installed but not logged in (optional — only needed for Path A).",
         "fix": {
             "macOS": "gh auth login",
             "Windows": "gh auth login",
@@ -244,6 +257,7 @@ def check_git_credential() -> dict[str, Any]:
     if shutil.which("git") is None:
         return {
             "name": "git.credential",
+            "required": False,
             "status": "warning",
             "details": "skipped (git not installed)",
             "fix": None,
@@ -257,6 +271,7 @@ def check_git_credential() -> dict[str, Any]:
     except (FileNotFoundError, subprocess.TimeoutExpired):
         return {
             "name": "git.credential",
+            "required": False,
             "status": "warning",
             "details": "git credential fill failed",
             "fix": None,
@@ -266,12 +281,14 @@ def check_git_credential() -> dict[str, Any]:
         helper = get_git_config("credential.helper") or "(unspecified)"
         return {
             "name": "git.credential",
+            "required": False,
             "status": "ok",
             "details": f"PAT available via credential helper: {helper}",
             "fix": None,
         }
     return {
         "name": "git.credential",
+        "required": False,
         "status": "warning",
         "details": "No PAT cached for github.com. Path B (API) will not work; only Path A (gh) or Path C (manual) will.",
         "fix": {
@@ -294,6 +311,7 @@ def check_network() -> dict[str, Any]:
             ok = resp.status == 200
         return {
             "name": "network.github",
+            "required": True,
             "status": "ok" if ok else "warning",
             "details": f"api.github.com HTTP {resp.status}",
             "fix": None,
@@ -301,6 +319,7 @@ def check_network() -> dict[str, Any]:
     except urllib.error.HTTPError as e:
         return {
             "name": "network.github",
+            "required": True,
             "status": "warning",
             "details": f"api.github.com HTTP {e.code}",
             "fix": None,
@@ -308,6 +327,7 @@ def check_network() -> dict[str, Any]:
     except (urllib.error.URLError, TimeoutError) as e:
         return {
             "name": "network.github",
+            "required": True,
             "status": "missing",
             "details": f"cannot reach api.github.com: {e}",
             "fix": {
@@ -324,8 +344,8 @@ def summarize(checks: list[dict[str, Any]]) -> dict[str, Any]:
     """Decide overall status + which auth paths are available."""
     by_name = {c["name"]: c for c in checks}
 
-    # Required: python3, git, git.user.name, git.user.email, network.github
-    required = ["python3", "git", "git.user.name", "git.user.email", "network.github"]
+    # Required checks are tagged via the `required` field on each check.
+    required = [c["name"] for c in checks if c.get("required")]
     missing_required = [
         name for name in required
         if by_name.get(name, {}).get("status") in ("missing", "needs_setup")
@@ -359,12 +379,22 @@ def summarize(checks: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def format_human(checks: list[dict[str, Any]], summary: dict[str, Any]) -> str:
-    icon = {"ok": "[OK]", "warning": "[--]", "missing": "[X ]", "needs_setup": "[!!]"}
+    # Icon depends on (required, status): required+bad is loud, optional+bad is low-key.
+    def icon_for(c: dict[str, Any]) -> str:
+        status = c.get("status")
+        required = c.get("required", False)
+        if status == "ok":
+            return "[OK]"
+        if required:
+            return "[X ]" if status == "missing" else "[!!]"
+        return "[~ ]"  # optional, any non-ok state
+
     lines = []
     lines.append(f"=== Preflight ({CURRENT_OS}) ===")
     lines.append("")
     for c in checks:
-        lines.append(f"  {icon.get(c['status'], '[? ]')} {c['name']:22s}  {c['details']}")
+        suffix = "" if c.get("required") else "  (optional)"
+        lines.append(f"  {icon_for(c)} {c['name']:22s}  {c['details']}{suffix}")
     lines.append("")
 
     if summary["missing_required"]:

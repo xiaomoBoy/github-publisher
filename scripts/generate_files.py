@@ -82,12 +82,15 @@ def generate_gitignore(
     dest: Path,
     force: bool,
 ) -> tuple[bool, str]:
-    # Map project_type to template; fall back to general
+    # Map project_type to template; fall back to general.
+    # claude-skill maps to python because ~all Claude skills are Python scripts
+    # + Markdown docs. Authors writing a Node skill can override with --type node.
     type_map = {
         "python": "python.gitignore",
         "node": "node.gitignore",
         "shell": "shell.gitignore",
         "docs": "docs.gitignore",
+        "claude-skill": "python.gitignore",
     }
     tmpl_file = type_map.get(project_type, "general.gitignore")
     body = load_template(f"gitignore-templates/{tmpl_file}")

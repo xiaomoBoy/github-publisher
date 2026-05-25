@@ -83,7 +83,7 @@ description: Use when the user wants to publish a local project (any language) t
    - `--description ""`（如果用户开头随口说了一句简介，把它当 `--description`）
    - `--author`：从 `gh api user` 或 `git config user.email` noreply 域名自动推断
 
-   publish.py 会跑完 Phase 1-6（preflight → detect → scan → generate → git init+commit → 打印 plan summary），然后**以 exit 12 退出**等用户确认推送。
+   publish.py 会跑完 Phase 1-5（preflight → detect → scan → generate → git init+commit），打印 Pre-push review，然后**以 exit 12 退出**等用户确认推送。
 
 3. **处理硬节点**（按 exit code 路由）
 
@@ -91,7 +91,7 @@ description: Use when the user wants to publish a local project (any language) t
    |---|---|---|
    | 10 | preflight 缺关键项 | 按上面第 1 步装好再重跑 |
    | 11 | scan 红警（有 secret / 私有路径 / 大文件） | 把红警逐条展示给用户，给出修法（脚本输出已含 `fix:` 指针），**不要自己改用户代码**，等用户改完重跑 |
-   | 12 | 准备好推送，等确认 | 把 plan summary 完整转给用户，问"是否推送？(y/n)"。用户明确 y → 加 `--yes` 重跑 publish.py |
+   | 12 | 准备好推送，等确认 | 把 Pre-push review 完整转给用户，问"是否推送？(y/n)"。用户明确 y → 加 `--yes` 重跑 publish.py |
    | 13 | 没有可用 auth，需手动 | publish.py 已打印手把手教程，转给用户照做即可 |
    | 0 | 全完成 | 把最终 URL 和 checklist 转给用户 |
    | 1 | 其他错误 | 看 log 找原因 |

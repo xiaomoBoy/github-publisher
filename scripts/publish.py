@@ -234,6 +234,7 @@ def phase_generate(
     scan_output_path: Path,
     install_cmd: str | None = None,
     usage_example: str | None = None,
+    regenerate: bool = False,
 ) -> dict[str, Any]:
     emit(header("Phase 4 — Generate README / LICENSE / .gitignore"))
     extra: list[str] = []
@@ -241,6 +242,8 @@ def phase_generate(
         extra.extend(["--install-cmd", install_cmd])
     if usage_example:
         extra.extend(["--usage-example", usage_example])
+    if regenerate:
+        extra.append("--force")
     code, out, err = run_script("generate_files.py", [
         str(project_path),
         "--license", license_name,
@@ -265,6 +268,9 @@ def phase_generate(
     for r in data["results"]:
         prefix = "  [ok]  " if r["ok"] else "  [skip]"
         emit(f"{prefix} {r['file']}: {r['message']}")
+    skipped = [r["file"] for r in data["results"] if not r["ok"]]
+    if skipped and not regenerate:
+        emit("  (To regenerate with current args, add --regenerate-docs.)")
     return {"ok": True, "generate": data}
 
 
@@ -335,7 +341,7 @@ def phase_plan_summary(
     description: str,
     author: str,
 ) -> None:
-    emit(header("Phase 6 — Plan summary (review before push)"))
+    emit(header("Pre-push review (re-run with --yes to confirm)"))
     emit(f"  Project path:    {project_path}")
     emit(f"  Repo name:       {name}")
     emit(f"  Visibility:      {visibility}")
@@ -358,7 +364,7 @@ def phase_create_and_push(
     description: str,
     author: str | None,
 ) -> dict[str, Any]:
-    emit(header("Phase 7 — Create GitHub repo + push"))
+    emit(header("Phase 6 — Create GitHub repo + push"))
     args = [str(project_path), "--name", name]
     if public:
         args.append("--public")
@@ -405,7 +411,7 @@ def phase_create_and_push(
 
 
 def phase_verify(emit, project_path: Path) -> dict[str, Any]:
-    emit(header("Phase 8 — Verify remote"))
+    emit(header("Phase 7 — Verify remote"))
     code, out, err = run_script(
         "verify_remote.py", [str(project_path), "--format", "json"],
     )
@@ -445,6 +451,8 @@ def main() -> int:
     parser.add_argument("--commit-message", default="Initial commit")
     parser.add_argument("--install-cmd", default=None, help="Real install instructions for README")
     parser.add_argument("--usage-example", default=None, help="Real usage example for README")
+    parser.add_argument("--regenerate-docs", action="store_true",
+                        help="Overwrite existing README/LICENSE/.gitignore (default: skip if present)")
     parser.add_argument("--yes", action="store_true", help="Confirm push (AI passes after user 'y')")
     parser.add_argument("--skip-preflight", action="store_true")
     parser.add_argument("--no-push", action="store_true", help="Run everything except create+push+verify")
@@ -493,11 +501,13 @@ def main() -> int:
     if not r["ok"]:
         return _final(args.format, output_lines, state, 1)
     project_type = r["detect"]["project_type"]
-    # generate_files only knows: python / node / shell / docs / general
+    # generate_files knows: python / node / shell / docs / claude-skill / general
     if args.type:
         gen_type = args.type
+    elif project_type in ("python", "node", "shell", "docs", "claude-skill"):
+        gen_type = project_type
     else:
-        gen_type = project_type if project_type in ("python", "node", "shell", "docs") else "general"
+        gen_type = "general"
 
     # Phase 3
     r = phase_scan(emit, project_path, scan_output_path)
@@ -514,6 +524,7 @@ def main() -> int:
         scan_output_path=scan_output_path,
         install_cmd=args.install_cmd,
         usage_example=args.usage_example,
+        regenerate=args.regenerate_docs,
     )
     state["generate"] = r
     if not r["ok"]:
@@ -525,7 +536,7 @@ def main() -> int:
     if not r["ok"]:
         return _final(args.format, output_lines, state, 1)
 
-    # Phase 6 — checkpoint
+    # Pre-push checkpoint
     if not args.yes:
         phase_plan_summary(
             emit, project_path, name, visibility_label,
@@ -534,10 +545,10 @@ def main() -> int:
         return _final(args.format, output_lines, state, 12)
 
     if args.no_push:
-        emit(header("--no-push set; stopping before Phase 7"))
+        emit(header("--no-push set; stopping before Phase 6"))
         return _final(args.format, output_lines, state, 0)
 
-    # Phase 7
+    # Phase 6
     r = phase_create_and_push(
         emit, project_path, name=name, public=public,
         description=description, author=author,
@@ -546,7 +557,7 @@ def main() -> int:
     if not r["ok"]:
         return _final(args.format, output_lines, state, r.get("exit", 1))
 
-    # Phase 8
+    # Phase 7
     r = phase_verify(emit, project_path)
     state["verify"] = r
 
