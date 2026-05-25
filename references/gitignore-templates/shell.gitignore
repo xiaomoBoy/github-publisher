@@ -1,0 +1,36 @@
+# Shell scripts artifacts
+*.log
+*.out
+*.pid
+
+# Local config / runtime
+.env
+.envrc
+.local/
+
+# Backup / temp
+*~
+*.bak
+*.tmp
+*.swp
+*.swo
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+._*
+Thumbs.db
+desktop.ini
+
+# Secrets (always ignore)
+*.key
+*.pem
+*.pfx
+credentials.json
+secrets.json
+.ssh/
+id_rsa*
+id_ed25519*

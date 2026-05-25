@@ -1,0 +1,55 @@
+# General catch-all gitignore for unknown / mixed project types
+
+# OS
+.DS_Store
+._*
+Thumbs.db
+desktop.ini
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.history/
+
+# Logs / temp / backup
+*.log
+*.tmp
+*.bak
+*.cache
+
+# Common build output
+dist/
+build/
+out/
+target/
+.cache/
+
+# Common deps (uncomment those that apply)
+# node_modules/
+# venv/
+# .venv/
+# __pycache__/
+# vendor/
+
+# Env / secrets (always ignore)
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+*.pfx
+credentials.json
+secrets.json
+.aws/credentials
+id_rsa*
+id_ed25519*
+id_dsa*
+.npmrc
+.pypirc
+.netrc

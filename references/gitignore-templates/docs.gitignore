@@ -1,0 +1,31 @@
+# Documentation-only project
+# (mostly OS / editor cruft and any optional build output)
+
+# Build output (mkdocs / hugo / docusaurus / etc — uncomment as needed)
+# site/
+# public/
+# .docusaurus/
+# build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+._*
+Thumbs.db
+desktop.ini
+
+# Local notes / drafts (your call to keep or not)
+# drafts/
+# notes-private/
+
+# Secrets (always ignore)
+.env
+*.key
+*.pem
+credentials.json
+secrets.json
