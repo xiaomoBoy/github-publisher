@@ -146,9 +146,38 @@ def check_git_config_name() -> dict[str, Any]:
     }
 
 
+PERSONAL_EMAIL_DOMAINS = {
+    "gmail.com", "googlemail.com",
+    "outlook.com", "hotmail.com", "live.com",
+    "yahoo.com", "yahoo.co.jp",
+    "icloud.com", "me.com", "mac.com",
+    "qq.com", "163.com", "126.com", "sina.com", "sina.cn",
+    "foxmail.com", "yeah.net",
+    "protonmail.com", "proton.me",
+    "aol.com", "mail.com",
+}
+
+
+def _is_personal_email(email: str) -> bool:
+    if "@" not in email:
+        return False
+    domain = email.split("@", 1)[1].lower()
+    return domain in PERSONAL_EMAIL_DOMAINS
+
+
 def check_git_config_email() -> dict[str, Any]:
     email = get_git_config("user.email")
     if email:
+        # Personal email is still OK to commit with, but warn it will be public.
+        # noreply alias users are fine, custom domains are fine.
+        if _is_personal_email(email):
+            return {
+                "name": "git.user.email",
+                "required": True,
+                "status": "ok",
+                "details": f"{email}  (heads up: personal email — every commit will publicly show it. To hide, see INSTALL.md § email privacy)",
+                "fix": None,
+            }
         return {"name": "git.user.email", "required": True, "status": "ok", "details": email, "fix": None}
     return {
         "name": "git.user.email",

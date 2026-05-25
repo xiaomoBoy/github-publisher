@@ -5,9 +5,17 @@ All notable changes to this project will be documented in this file. Format loos
 ## [Unreleased]
 
 ### Added
-- Bilingual documentation suite (EN + 中文): README, INSTALL, USAGE, TROUBLESHOOTING, SECURITY
+- Bilingual documentation suite (EN + 中文): README, INSTALL, USAGE, TROUBLESHOOTING, SECURITY, FAQ
 - CONTRIBUTING.md with project scope, dev setup, and template-addition guides
 - This CHANGELOG.md
+- `examples/` directory with three try-it-without-risk sample projects:
+  - `minimal-python/` — a 5-line script with no scaffolding
+  - `minimal-claude-skill/` — a skeleton Claude skill
+  - `with-secrets-fail-demo/` — intentionally leaks a fake OpenAI key so users can see the scanner refuse to publish
+- `publish.py --dry-run` — zero-side-effect preview: runs preflight + detect + scan + prints the plan; does **not** write files, `git init`, or commit. Safe for first-time exploration
+- Post-publish "next steps" output: after Phase 7 success, prints suggestions for description / topics / tags / badges / Discussions, with explicit anti-scope-creep callouts for tweets / CI
+- Post-publish placeholder warning: if `README.md` still contains the literal `<install instructions go here>` or `<usage example goes here>` strings after push, prints a loud warning with two fix paths
+- `preflight.py` soft warning for personal email domains (gmail / outlook / qq / etc.) — status stays `[OK]` but the details line tells the user the email will be public, with a pointer to the noreply alias setup
 
 ### Changed
 - README rewritten as a proper landing page with documentation index, AI assistant matrix, and explicit non-goals

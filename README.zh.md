@@ -111,10 +111,12 @@ AI 层只是 orchestrator，真正的逻辑全在 `scripts/*.py`——没 AI 也
 | [INSTALL.md](INSTALL.md) · [INSTALL.zh.md](INSTALL.zh.md) | 按 OS、按 AI 客户端的安装步骤 + 鉴权配置 |
 | [USAGE.md](USAGE.md) · [USAGE.zh.md](USAGE.zh.md) | 每个参数、每个 exit code、每个 phase 的详解 |
 | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) · [TROUBLESHOOTING.zh.md](TROUBLESHOOTING.zh.md) | 常见报错 + 修法 |
+| [FAQ.md](FAQ.md) · [FAQ.zh.md](FAQ.zh.md) | 小白高频问题大白话答 |
 | [SECURITY.md](SECURITY.md) · [SECURITY.zh.md](SECURITY.zh.md) | 安全模型、保护什么、不保护什么 |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | 开发环境、代码风格、怎么加模板 |
 | [CHANGELOG.md](CHANGELOG.md) | 版本历史 |
 | `SKILL.md` | skill 工作手册，给 AI 助手看的 |
+| `examples/` | 零风险试跑用的示例项目（含一个故意触发 scanner 的） |
 | `references/` | 模式文档、license/gitignore/README 模板、修法 recipes |
 
 ## License

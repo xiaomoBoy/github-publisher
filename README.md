@@ -111,10 +111,12 @@ All scripts use Python `pathlib` / `subprocess` / `urllib` / `tempfile` / `shuti
 | [INSTALL.md](INSTALL.md) · [INSTALL.zh.md](INSTALL.zh.md) | Install per OS, per AI client, plus auth setup |
 | [USAGE.md](USAGE.md) · [USAGE.zh.md](USAGE.zh.md) | Every flag, every exit code, every phase explained |
 | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) · [TROUBLESHOOTING.zh.md](TROUBLESHOOTING.zh.md) | Common errors and fixes |
+| [FAQ.md](FAQ.md) · [FAQ.zh.md](FAQ.zh.md) | Plain-English answers to common newbie questions |
 | [SECURITY.md](SECURITY.md) · [SECURITY.zh.md](SECURITY.zh.md) | Security model, what's protected, what's not |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Dev setup, code style, how to add templates |
 | [CHANGELOG.md](CHANGELOG.md) | Version history |
 | `SKILL.md` | The skill manifest — describes the workflow to AI assistants |
+| `examples/` | Try-it-without-risk sample projects (incl. one that intentionally triggers the scanner) |
 | `references/` | Pattern docs, license/gitignore/README templates, fix recipes |
 
 ## License

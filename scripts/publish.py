@@ -454,6 +454,9 @@ def main() -> int:
     parser.add_argument("--regenerate-docs", action="store_true",
                         help="Overwrite existing README/LICENSE/.gitignore (default: skip if present)")
     parser.add_argument("--yes", action="store_true", help="Confirm push (AI passes after user 'y')")
+    parser.add_argument("--dry-run", action="store_true",
+                        help="Zero-side-effect preview: run preflight + detect + scan + print plan only. "
+                             "No file writes, no git init, no commit.")
     parser.add_argument("--skip-preflight", action="store_true")
     parser.add_argument("--no-push", action="store_true", help="Run everything except create+push+verify")
     parser.add_argument("--format", choices=["human", "json"], default="human")
@@ -515,6 +518,29 @@ def main() -> int:
     if not r["ok"]:
         return _final(args.format, output_lines, state, r.get("exit", 1))
 
+    # --dry-run stops here, before any file writes or git changes
+    if args.dry_run:
+        emit(header("Dry-run preview (no files written, no git changes)"))
+        emit(f"  Project path:    {project_path}")
+        emit(f"  Repo name:       {name}")
+        emit(f"  Visibility:      {visibility_label}")
+        emit(f"  License:         {license_name}")
+        emit(f"  Project type:    {gen_type}")
+        emit(f"  Description:     {description or '(none)'}")
+        emit(f"  Author:          {author}")
+        emit(f"  Would create:    https://github.com/{author}/{name}")
+        emit("")
+        emit("Would do if you re-ran without --dry-run:")
+        emit("  Phase 4: write LICENSE / README.md / .gitignore (skipping any that exist)")
+        emit("  Phase 5: git init + git add -A + initial commit (skipping if already done)")
+        emit("  Phase 6 (with --yes): create GitHub repo + push")
+        emit("  Phase 7 (with --yes): verify remote")
+        emit("")
+        emit("To proceed for real:")
+        emit(f"  python3 scripts/publish.py {args.path} [same args]            # stop at pre-push review")
+        emit(f"  python3 scripts/publish.py {args.path} [same args] --yes      # push to GitHub")
+        return _final(args.format, output_lines, state, 0)
+
     # Phase 4
     r = phase_generate(
         emit, project_path,
@@ -570,6 +596,40 @@ def main() -> int:
     if r["ok"]:
         emit("")
         emit("Done. The project is live on GitHub.")
+        repo_url = r["verify"].get("html_url") or f"https://github.com/{author}/{name}"
+
+        # Warn if README still contains generator placeholders
+        readme_path = project_path / "README.md"
+        placeholder_hits: list[str] = []
+        if readme_path.exists():
+            try:
+                readme_body = readme_path.read_text(encoding="utf-8", errors="replace")
+            except OSError:
+                readme_body = ""
+            if "<install instructions go here>" in readme_body:
+                placeholder_hits.append("install instructions")
+            if "<usage example goes here>" in readme_body:
+                placeholder_hits.append("usage example")
+
+        if placeholder_hits:
+            emit("")
+            emit("[!] README.md still contains placeholder text for: " + ", ".join(placeholder_hits) + ".")
+            emit("    Visitors will see literal `<…>` strings. Fix one of these ways:")
+            emit("      1. Edit README.md by hand, then `git commit -am 'fill in README' && git push`.")
+            emit("      2. Re-run with the real values:")
+            emit(f"         python3 scripts/publish.py {args.path} \\")
+            emit("           --install-cmd \"…\" --usage-example \"…\" --regenerate-docs")
+            emit(f"         then `git -C {project_path} commit -am 'update README' && git push`.")
+
+        emit("")
+        emit("Next steps (this tool stops here — these are all manual / your call):")
+        emit(f"  Open the repo:        {repo_url}")
+        emit("  Add description + topics (5 short keywords): repo page -> ⚙ About -> Edit")
+        emit("  Want a release tag?   git tag v0.1.0 && git push origin v0.1.0")
+        emit("  Want README badges?   https://shields.io picks the badge; paste at top of README")
+        emit("  Want Discussions?     Settings -> Features -> tick Discussions")
+        emit("  Want a launch tweet?  Use a separate writing tool (out of scope)")
+        emit("  Want CI?              Write your own .github/workflows/*.yml (out of scope)")
         return _final(args.format, output_lines, state, 0)
     emit("")
     emit("Push reported success but remote verify failed. Check the URL above manually.")
